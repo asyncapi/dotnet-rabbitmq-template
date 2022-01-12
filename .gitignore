@@ -1,6 +1,16 @@
 coverage
 node_modules
+docs
 output
 .DS_Store
 __transpiled
 test/temp
+package-lock.json
+template/build
+template/composer.lock
+template/vendor
+template/phpcs.xml
+template/.phpunit.result.cache
+.env
+template/.env
+.idea/

@@ -1,0 +1,38 @@
+{
+  "projectName": "dotnet-rabbitmq-template",
+  "projectOwner": "@asyncapi",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "mr-nuno",
+      "name": "Peter Wikström",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1067841?v=4",
+      "profile": "https://github.com/mr-nuno",
+      "contributions": [
+        "code",
+        "maintenance",
+        "question",
+        "ideas",
+        "doc",
+        "bug"
+      ]
+    },
+    {
+      "login": "derberg",
+      "name": "Lukasz Gornicki",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6995927?v=4",
+      "profile": "https://dev.to/derberg",
+      "contributions": [
+        "review"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "commitConvention": "none"
+}

@@ -27,6 +27,28 @@
     "@asyncapi/modelina": "^0.43.0",
     "lodash": "^4.17.15"
   },
+  "devDependencies": {
+    "@asyncapi/generator": "^1.7.0",
+    "@asyncapi/parser": "^1.5.0",
+    "@babel/preset-env": "^7.15.8",
+    "@babel/preset-react": "^7.14.5",
+    "@semantic-release/commit-analyzer": "^8.0.1",
+    "@semantic-release/github": "^7.0.7",
+    "@semantic-release/npm": "^7.0.5",
+    "@semantic-release/release-notes-generator": "^9.0.1",
+    "all-contributors-cli": "^6.19.0",
+    "conventional-changelog-conventionalcommits": "^4.4.0",
+    "eslint": "^7.17.0",
+    "eslint-plugin-jest": "^23.20.0",
+    "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-security": "^1.4.0",
+    "eslint-plugin-sonarjs": "^0.5.0",
+    "jest": "^26.4.2",
+    "jest-esm-transformer": "^1.0.0",
+    "markdown-toc": "^1.2.0",
+    "rimraf": "^3.0.2",
+    "semantic-release": "^17.3.2"
+  },
   "generator": {
     "renderer": "react",
     "parameters": {
@@ -74,24 +96,22 @@
     ],
     "generator": ">=1.1.0 <2.0.0"
   },
-  "devDependencies": {
-    "@asyncapi/generator": "^1.7.0",
-    "@asyncapi/parser": "^1.5.0",
-    "@semantic-release/commit-analyzer": "^8.0.1",
-    "@semantic-release/github": "^7.0.7",
-    "@semantic-release/npm": "^7.0.5",
-    "@semantic-release/release-notes-generator": "^9.0.1",
-    "all-contributors-cli": "^6.19.0",
-    "conventional-changelog-conventionalcommits": "^4.4.0",
-    "eslint": "^7.17.0",
-    "eslint-plugin-jest": "^23.20.0",
-    "eslint-plugin-react": "^7.22.0",
-    "eslint-plugin-security": "^1.4.0",
-    "eslint-plugin-sonarjs": "^0.5.0",
-    "jest": "^26.4.2",
-    "jest-esm-transformer": "^1.0.0",
-    "markdown-toc": "^1.2.0",
-    "rimraf": "^3.0.2",
-    "semantic-release": "^17.3.2"
+  "babel": {
+    "presets": [
+      "@babel/preset-env",
+      [
+        "@babel/preset-react",
+        {
+          "runtime": "automatic"
+        }
+      ]
+    ]
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "jsx"
+    ]
   }
 }

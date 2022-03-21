@@ -1,6 +1,8 @@
 export function Worker({ asyncapi, params, childrenContent }) {
-  return `using System.Threading;
+  return `using System;
+using System.Threading;
 using System.Threading.Tasks;
+using ${params.namespace}.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using ${params.namespace}.Services;
@@ -21,7 +23,7 @@ namespace ${params.namespace}
             _amqpService = new AmqpService(configuration);
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             ${childrenContent}
         }

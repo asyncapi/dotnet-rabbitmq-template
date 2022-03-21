@@ -207,8 +207,7 @@ export function getChannels(asyncapi) {
         const operationBinding = operation.binding('amqp');
         const parameters = realizeParametersForChannel(channel.parameters());
 
-        console.log(operationBinding['cc']);
-
+        // this should generate a consumer
         const channelData = {
           isPublish: true,
           routingKey: channelName,
@@ -239,6 +238,7 @@ export function getChannels(asyncapi) {
         const channelBinding = channel.binding('amqp');
         const parameters = realizeParametersForChannel(channel.parameters());
 
+        // this should generate a publisher
         const channelData = {
           isPublish: false,
           routingKey: channelName,

@@ -1,3 +1,7 @@
 export function Consumers({ channels }) {
-  return ``;
+  if (channels?.length == 0) {
+    return null;
+  }
+
+  return `_amqpService.OnSensorTemperatureChange();`;
 }

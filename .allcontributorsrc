@@ -20,14 +20,15 @@
         "question",
         "ideas",
         "doc",
-        "bug"
+        "bug",
+        "review"
       ]
     },
     {
-      "login": "derberg",
-      "name": "Lukasz Gornicki",
-      "avatar_url": "https://avatars.githubusercontent.com/u/6995927?v=4",
-      "profile": "https://dev.to/derberg",
+      "login": "connil",
+      "name": "Conny Nilimaa",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6583798?v=4",
+      "profile": "https://github.com/connil",
       "contributions": [
         "review"
       ]

@@ -6,3 +6,4 @@
 
 # The default owners are automatically added as reviewers when you open a pull request unless different owners are specified in the file.
 * @mr-nuno @github-actions[bot]
+* @connil @github-actions[bot]

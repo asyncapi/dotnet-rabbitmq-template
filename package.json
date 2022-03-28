@@ -14,7 +14,8 @@
     "asyncapi",
     "generator",
     "template",
-    "dotnet"
+    "dotnet",
+    "rabbitmq"
   ],
   "author": "Peter Wikström <peter@wikstrom.in> (https://github.com/mr-nuno)",
   "license": "Apache-2.0",

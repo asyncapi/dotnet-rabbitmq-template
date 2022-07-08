@@ -126,12 +126,23 @@ public class AmqpService : IAmqpService
           consumer.operationId
         )}");
 
+        // TODO: declare passive?
+        channel.QueueDeclare(queue);
+
+        channel.QueueBind(queue: queue,
+                  exchange: "${consumer.exchange}",
+                  routingKey: "${consumer.routingKey}");
+
         var consumer = new EventingBasicConsumer(channel);
         consumer.Received += (_, ea) =>
         {
             var body = ea.Body.ToArray();
-            var temperature = JsonSerializer.Deserialize<Temperature>(Encoding.UTF8.GetString(body));
-            _logger.Verbose("Temperature received, {@Temperature}", temperature);
+            var message = JsonSerializer.Deserialize<${
+              consumer.messageType
+            }>(Encoding.UTF8.GetString(body));
+            _logger.Verbose("${toPascalCase(
+              consumer.messageType
+            )} received, {@${toPascalCase(consumer.messageType)}}", message);
 
             try
             {
@@ -141,7 +152,9 @@ public class AmqpService : IAmqpService
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Something went wrong trying to process message {@Temperature},", temperature);
+                _logger.Error(e, "Something went wrong trying to process message {@${toPascalCase(
+                  consumer.messageType
+                )}},", message);
                 channel.BasicReject(ea.DeliveryTag, false);
             }
         };

@@ -1,14 +1,16 @@
 {
-  "name": "dotnet-template",
+  "name": "@asyncapi/dotnet-rabbitmq-template",
   "version": "0.0.1",
   "description": "Template package for AsyncAPI code generation",
   "main": "index.js",
   "scripts": {
     "test": "jest --coverage",
-    "release": "semantic-release",
     "get-version": "echo $npm_package_version",
     "gen-readme-toc": "markdown-toc -i README.md",
-    "lint": "eslint --max-warnings 0 --fix --config .eslintrc ."
+    "lint": "eslint --max-warnings 0 --fix --config .eslintrc .",
+    "release": "semantic-release",
+    "generate:assets": "",
+    "bump:version": "npm --no-git-tag-version --allow-same-version version $VERSION"
   },
   "keywords": [
     "asyncapi",
@@ -34,7 +36,7 @@
     "@babel/preset-env": "^7.15.8",
     "@babel/preset-react": "^7.14.5",
     "@semantic-release/commit-analyzer": "^8.0.1",
-    "@semantic-release/github": "^7.0.7",
+    "@semantic-release/github": "7.2.3",
     "@semantic-release/npm": "^7.0.5",
     "@semantic-release/release-notes-generator": "^9.0.1",
     "all-contributors-cli": "^6.19.0",
@@ -48,7 +50,7 @@
     "jest-esm-transformer": "^1.0.0",
     "markdown-toc": "^1.2.0",
     "rimraf": "^3.0.2",
-    "semantic-release": "^17.3.2"
+    "semantic-release": "19.0.3"
   },
   "generator": {
     "renderer": "react",
@@ -113,6 +115,27 @@
       "js",
       "json",
       "jsx"
+    ]
+  },
+  "release": {
+    "branches": [
+      "master"
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits"
+        }
+      ],
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "conventionalcommits"
+        }
+      ],
+      "@semantic-release/npm",
+      "@semantic-release/github"
     ]
   }
 }

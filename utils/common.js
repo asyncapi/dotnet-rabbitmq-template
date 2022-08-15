@@ -112,22 +112,22 @@ export function getMessageType(message) {
  */
 export function toCType(jsonSchemaType, property) {
   switch (jsonSchemaType.toLowerCase()) {
-    case 'string':
-      return 'String';
-    case 'integer':
-      return 'int';
-    case 'number':
-      return 'decimal';
-    case 'boolean':
-      return 'bool';
-    case 'object':
-      if (property) {
-        return `${property.uid()}Schema`;
-      }
-      return 'object';
+  case 'string':
+    return 'String';
+  case 'integer':
+    return 'int';
+  case 'number':
+    return 'decimal';
+  case 'boolean':
+    return 'bool';
+  case 'object':
+    if (property) {
+      return `${property.uid()}Schema`;
+    }
+    return 'object';
 
-    default:
-      return 'object';
+  default:
+    return 'object';
   }
 }
 
@@ -139,16 +139,16 @@ export function toCType(jsonSchemaType, property) {
  */
 export function castToCType(jsonSchemaType, variableToCast) {
   switch (jsonSchemaType.toLowerCase()) {
-    case 'string':
-      return `$"{${variableToCast}}"`;
-    case 'integer':
-      return `int.Parse(${variableToCast})`;
-    case 'number':
-      return `decimal.Parse(${variableToCast}, System.Globalization.CultureInfo.InvariantCulture)`;
-    case 'boolean':
-      return `bool.Parse(${variableToCast})`;
-    default:
-      throw new Error(`Parameter type not supported - ${jsonSchemaType}`);
+  case 'string':
+    return `$"{${variableToCast}}"`;
+  case 'integer':
+    return `int.Parse(${variableToCast})`;
+  case 'number':
+    return `decimal.Parse(${variableToCast}, System.Globalization.CultureInfo.InvariantCulture)`;
+  case 'boolean':
+    return `bool.Parse(${variableToCast})`;
+  default:
+    throw new Error(`Parameter type not supported - ${jsonSchemaType}`);
   }
 }
 
@@ -194,7 +194,7 @@ export function parseParameters(parameters) {
 }
 
 export function cleanString(str) {
-  return str.replace(/  |\r\n|\n|\r/gm, '').trim();
+  return str.replace(/ {2}|\r\n|\n|\r/gm, '').trim();
 }
 
 export function getChannels(asyncapi) {
@@ -205,10 +205,9 @@ export function getChannels(asyncapi) {
         const operation = channel.publish();
         const channelBinding = channel.binding('amqp');
         const operationBinding = operation.binding('amqp');
-        const parameters = realizeParametersForChannel(channel.parameters());
 
         // this should generate a consumer
-        const channelData = {
+        return {
           isPublish: true,
           routingKey: channelName,
           operationId: operation.id(),
@@ -229,17 +228,14 @@ export function getChannels(asyncapi) {
           alternateExchange: channelBinding.exchange['x-alternate-exchange'],
           messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
         };
-
-        return channelData;
       }
 
       if (channel.hasSubscribe() && channel.hasBinding('amqp')) {
         const operation = channel.subscribe();
         const channelBinding = channel.binding('amqp');
-        const parameters = realizeParametersForChannel(channel.parameters());
 
         // this should generate a publisher
-        const channelData = {
+        return {
           isPublish: false,
           routingKey: channelName,
           operationId: operation.id(),
@@ -251,8 +247,6 @@ export function getChannels(asyncapi) {
           exchangeType: channelBinding.exchange.type,
           messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
         };
-
-        return channelData;
       }
     })
     .filter((publisher) => publisher);
@@ -265,7 +259,6 @@ export function getPublishers(asyncapi) {
       if (channel.hasPublish() && channel.hasBinding('amqp')) {
         const operation = channel.publish();
         const binding = channel.binding('amqp');
-        const parameters = realizeParametersForChannel(channel.parameters());
 
         const publisher = {
           routingKey: channelName,

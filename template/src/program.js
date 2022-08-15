@@ -7,7 +7,7 @@ export default function({ asyncapi, params }) {
 
   return (
     <File name="Program.cs">
-        {`using Masking.Serilog;
+      {`using Masking.Serilog;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,7 +37,7 @@ namespace ${params.namespace}
                 });
     }
 }`
-}
-</File>
-);
+      }
+    </File>
+  );
 }

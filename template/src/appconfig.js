@@ -18,7 +18,7 @@ export default function({ asyncapi, params }) {
 
   const server = Object.entries(asyncapi.servers())
     .map(([serverName, server]) => {
-      if(serverName === params.server){
+      if (serverName === params.server) {
         return server.url();
       }
     })
@@ -27,8 +27,8 @@ export default function({ asyncapi, params }) {
   // Notice that root component is the `File` component.
   return (
     <File name="appsettings.json">
-        {
-      `{
+      {
+        `{
 "Serilog": {
     "MinimumLevel": {
     "Default": "Verbose",
@@ -69,7 +69,7 @@ export default function({ asyncapi, params }) {
     "Host": "${server}"
     }
 }`
-    }
+      }
     </File>
   );
 }

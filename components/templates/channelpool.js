@@ -53,20 +53,20 @@ public class ChannelPool : IChannelPool
         
         // creating producer channels
         ${publishers.map(
-          (publisher) => `_channels.Add(
+    (publisher) => `_channels.Add(
             "${toPascalCase(publisher.operationId)}",
             CreateChannel(connection));`
-        )}
+  )}
 
         // creating consumer channels
         ${consumers.map(
-          (consumer) => `_channels.Add(
+    (consumer) => `_channels.Add(
             "${toPascalCase(consumer.operationId)}",
             CreateChannel(
                 connection, 
                 ${consumer.prefetchCount},
                 ${consumer.confirm}));`
-        )}
+  )}
         
     }
 

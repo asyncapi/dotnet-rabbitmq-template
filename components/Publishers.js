@@ -1,7 +1,7 @@
 import { toPascalCase } from '../utils/common';
 
 export function Publishers({ channels }) {
-  if (channels?.length == 0) {
+  if (channels.length === 0) {
     return null;
   }
 

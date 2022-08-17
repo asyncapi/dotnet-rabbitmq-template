@@ -7,7 +7,7 @@ export default function({ asyncapi, params }) {
 
   return (
     <File name={`${params.namespace}.csproj`}>
-        {`<Project Sdk="Microsoft.NET.Sdk.Web">
+      {`<Project Sdk="Microsoft.NET.Sdk.Web">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
@@ -23,7 +23,7 @@ export default function({ asyncapi, params }) {
         <PackageReference Include="Serilog.Sinks.Seq" Version="5.1.0" />
     </ItemGroup>
 </Project>`
-}
-</File>
-);
+      }
+    </File>
+  );
 }

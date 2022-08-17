@@ -8,23 +8,23 @@ namespace ${params.namespace}.Services.Interfaces;
 public interface IAmqpService : IDisposable
 {
     ${publishers
-      .map(
-        (publisher) => `
+    .map(
+      (publisher) => `
     /// <summary>
     /// Operations from async api specification
     /// </summary>
     /// <param name="message">The message to be handled by this amqp operation</param>
     void ${toPascalCase(publisher.operationId)}(${
-          publisher.messageType
-        } message);
+  publisher.messageType
+} message);
         
         `
-      )
-      .join('')}
+    )
+    .join('')}
 
       ${consumers
-        .map(
-          (consumer) => `
+    .map(
+      (consumer) => `
       /// <summary>
       /// Operations from async api specification
       /// </summary>
@@ -32,8 +32,8 @@ public interface IAmqpService : IDisposable
       void ${toPascalCase(consumer.operationId)}();
           
           `
-        )
-        .join('')}
+    )
+    .join('')}
 }`;
 
 export function IAmqpService({ asyncapi, params }) {

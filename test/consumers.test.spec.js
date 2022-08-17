@@ -1,7 +1,7 @@
 import { render } from '@asyncapi/generator-react-sdk';
 import AsyncAPIDocument from '@asyncapi/parser/lib/models/asyncapi';
 import { Consumers } from '../components/Consumers';
-import { cleanString } from '../utils/common';
+import { cleanString, getChannels } from '../utils/common';
 
 describe('Consumers component', () => {
   it('should render consumer implementation', () => {
@@ -48,24 +48,13 @@ describe('Consumers component', () => {
       },
     });
 
-    const expected = `// Handler for 'Subscribe to a temperature change from a specific sensor.'
-    _channel.QueueDeclare(\"temperatures\");
-    _channel.QueueBind(queue: \"temperatures\",
-            exchange: \"temperature\",
-            routingKey: \"{sensorId}.temperature\");
-    var onSpecificSensorTemperatureReceived = new EventingBasicConsumer(_channel);
-    onSpecificSensorTemperatureReceived.Received += (model, ea) =>
+    const expected = `protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var body = ea.Body.ToArray();
-        var message = JsonSerializer.Deserialize<Temperature>(Encoding.UTF8.GetString(body));
-        _logger.Verbose(\"Temperature received, {@Temperature}\", message);
-        // TODO - handle message
-    };
-    _channel.BasicConsume(queue: \"temperatures\",
-            autoAck: true,
-            consumer: onSpecificSensorTemperatureReceived);`;
+      _amqpService.OnSpecificSensorTemperatureReceived();
+      return Task.CompletedTask;
+    }`;
 
-    const result = render(<Consumers channels={asyncapi.channels()} />);
+    const result = render(<Consumers channels={getChannels(asyncapi)} />);
 
     expect(cleanString(result)).toEqual(cleanString(expected));
   });

@@ -9,7 +9,7 @@
     "gen-readme-toc": "markdown-toc -i README.md",
     "lint": "eslint --max-warnings 0 --fix --config .eslintrc .",
     "release": "semantic-release",
-    "bump:version": "npm --no-git-tag-version --allow-same-version version $VERSION"
+    "bump:version": "npm --no-git-tag-version --allow-same-version version $VERSION",
     "generate:assets": "",
     "generate:examples": ""
   },

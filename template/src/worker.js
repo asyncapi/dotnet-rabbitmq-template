@@ -9,18 +9,18 @@ export default function ({ asyncapi, params }) {
     return null;
   }
 
-  const publishers = getChannels(asyncapi).filter(
-    (channel) => channel.isPublish
-  );
-  const consumers = getChannels(asyncapi).filter(
-    (channel) => !channel.isPublish
-  );
+  const channels = getChannels(asyncapi);
+  const publishers = channels.filter((channel) => channel.isPublish);
+  const consumers = channels.filter((channel) => !channel.isPublish);
+
+  console.log(publishers);
+  console.log(consumers);
 
   return (
     <File name="Worker.cs">
       <Worker asyncapi={asyncapi} params={params}>
-        {render(<Consumers channels={consumers} />)}
-        {render(<Publishers channels={publishers} />)}
+        {render(<Consumers channels={[]} />)}
+        {render(<Publishers channels={[]} />)}
       </Worker>
     </File>
   );

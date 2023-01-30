@@ -112,22 +112,22 @@ export function getMessageType(message) {
  */
 export function toCType(jsonSchemaType, property) {
   switch (jsonSchemaType.toLowerCase()) {
-  case 'string':
-    return 'String';
-  case 'integer':
-    return 'int';
-  case 'number':
-    return 'decimal';
-  case 'boolean':
-    return 'bool';
-  case 'object':
-    if (property) {
-      return `${property.uid()}Schema`;
-    }
-    return 'object';
+    case 'string':
+      return 'String';
+    case 'integer':
+      return 'int';
+    case 'number':
+      return 'decimal';
+    case 'boolean':
+      return 'bool';
+    case 'object':
+      if (property) {
+        return `${property.uid()}Schema`;
+      }
+      return 'object';
 
-  default:
-    return 'object';
+    default:
+      return 'object';
   }
 }
 
@@ -139,16 +139,16 @@ export function toCType(jsonSchemaType, property) {
  */
 export function castToCType(jsonSchemaType, variableToCast) {
   switch (jsonSchemaType.toLowerCase()) {
-  case 'string':
-    return `$"{${variableToCast}}"`;
-  case 'integer':
-    return `int.Parse(${variableToCast})`;
-  case 'number':
-    return `decimal.Parse(${variableToCast}, System.Globalization.CultureInfo.InvariantCulture)`;
-  case 'boolean':
-    return `bool.Parse(${variableToCast})`;
-  default:
-    throw new Error(`Parameter type not supported - ${jsonSchemaType}`);
+    case 'string':
+      return `$"{${variableToCast}}"`;
+    case 'integer':
+      return `int.Parse(${variableToCast})`;
+    case 'number':
+      return `decimal.Parse(${variableToCast}, System.Globalization.CultureInfo.InvariantCulture)`;
+    case 'boolean':
+      return `bool.Parse(${variableToCast})`;
+    default:
+      throw new Error(`Parameter type not supported - ${jsonSchemaType}`);
   }
 }
 
@@ -201,53 +201,48 @@ export function getChannels(asyncapi) {
   const channels = asyncapi.channels();
   return Object.entries(channels)
     .map(([channelName, channel]) => {
-      if (channel.hasPublish() && channel.hasBinding('amqp')) {
-        const operation = channel.publish();
-        const channelBinding = channel.binding('amqp');
-        const operationBinding = operation.binding('amqp');
+      const operation = channel.hasPublish()
+        ? channel.publish()
+        : channel.subscribe();
+      const channelBinding = channel.hasBinding()
+        ? channel.binding('amqp')
+        : {};
+      const operationBinding = operation.hasBinding()
+        ? operation.binding('amqp')
+        : {};
 
-        // this should generate a consumer
-        return {
-          isPublish: true,
-          routingKey: channelName,
-          operationId: operation.id(),
-          expiration: operationBinding['expiration'],
-          userId: operationBinding['userId'],
-          cc: operationBinding['cc'],
-          bcc: operationBinding['bcc'],
-          priority: operationBinding['priority'],
-          deliveryMode: operationBinding['deliveryMode'],
-          mandatory: operationBinding['mandatory'],
-          replyTo: operationBinding['replyTo'],
-          timestamp: operationBinding['timestamp'],
-          ack: operationBinding['ack'],
-          exchange: channelBinding.exchange.name,
-          exchangeType: channelBinding.exchange.type,
-          isDurable: channelBinding.exchange.durable,
-          isAutoDelete: channelBinding.exchange.autoDelete,
-          alternateExchange: channelBinding.exchange['x-alternate-exchange'],
-          messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
-        };
-      }
-
-      if (channel.hasSubscribe() && channel.hasBinding('amqp')) {
-        const operation = channel.subscribe();
-        const channelBinding = channel.binding('amqp');
-
-        // this should generate a publisher
-        return {
-          isPublish: false,
-          routingKey: channelName,
-          operationId: operation.id(),
-          operationDescription: operation.description(),
-          queue: channelBinding.queue.name,
-          prefetchCount: channelBinding.queue['x-prefetch-count'],
-          confirm: channelBinding.queue['x-confirm'],
-          exchange: channelBinding.exchange.name,
-          exchangeType: channelBinding.exchange.type,
-          messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
-        };
-      }
+      // this should generate a consumer
+      return {
+        isPublish: channel.hasPublish(),
+        routingKey: channelName,
+        operationId: operation.id(),
+        operationDescription: operation.description(),
+        queue: channelBinding?.queue?.name,
+        prefetchCount: channelBinding?.queue?.['x-prefetch-count']
+          ? channelBinding.queue['x-prefetch-count']
+          : 0,
+        confirm: channelBinding?.queue?.['x-confirm']
+          ? channelBinding.queue['x-confirm']
+          : false,
+        expiration: operationBinding['expiration'],
+        userId: operationBinding['userId'],
+        cc: operationBinding['cc'],
+        bcc: operationBinding['bcc'],
+        priority: operationBinding['priority'],
+        deliveryMode: operationBinding['deliveryMode'],
+        mandatory: operationBinding['mandatory'],
+        replyTo: operationBinding['replyTo'],
+        timestamp: operationBinding['timestamp'],
+        ack: operationBinding['ack'],
+        exchange: channelBinding?.exchange?.name,
+        exchangeType: channelBinding?.exchange?.type,
+        isDurable: channelBinding?.exchange?.durable,
+        isAutoDelete: channelBinding?.exchange?.autoDelete,
+        alternateExchange: channelBinding?.exchange?.['x-alternate-exchange']
+          ? channelBinding.exchange['x-alternate-exchange']
+          : '',
+        messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
+      };
     })
     .filter((publisher) => publisher);
 }
@@ -278,7 +273,3 @@ export function getPublishers(asyncapi) {
     })
     .filter((publisher) => publisher);
 }
-
-export const addBasicProperty = () => {
-  return 'test';
-};

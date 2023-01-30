@@ -31,8 +31,8 @@ namespace ${params.namespace}.Services;
 
 /// <summary>
 /// Generated consumer for ${asyncapi.info().title()}, ${asyncapi
-  .info()
-  .version()}
+    .info()
+    .version()}
 /// </summary>
 public class AmqpService : IAmqpService
 {
@@ -60,21 +60,21 @@ public class AmqpService : IAmqpService
     }
 
     ${publishers
-    .map(
-      (publisher) => `/// <summary>
+      .map(
+        (publisher) => `/// <summary>
     /// Operations from async api specification
     /// </summary>
     /// <param name="message">The message to be handled by this amqp operation</param>
     public void ${toPascalCase(publisher.operationId)}(${
-  publisher.messageType
-} message)
+          publisher.messageType
+        } message)
     {
         var exchange = "${publisher.exchange}";
         var routingKey = "${publisher.routingKey}";
 
         var channel = _channelPool.GetChannel("${toPascalCase(
-    publisher.operationId
-  )}");
+          publisher.operationId
+        )}");
         var exchangeProps = new Dictionary<string, object>
         {
             {"CC", "${publisher.cc}"},
@@ -99,8 +99,8 @@ public class AmqpService : IAmqpService
         props.Expiration = "${publisher.expiration}";
 
         _logger.Verbose("Sending message {@${
-  publisher.messageType
-}} with correlation id {CorrelationId}", 
+          publisher.messageType
+        }} with correlation id {CorrelationId}", 
             message, 
             props.CorrelationId);
         
@@ -114,21 +114,25 @@ public class AmqpService : IAmqpService
     }
     
     `
-    )
-    .join('')}
+      )
+      .join('')}
 
     ${consumers
-    .map(
-      (consumer) => `public void ${toPascalCase(consumer.operationId)}()
+      .map(
+        (consumer) => `public void ${toPascalCase(consumer.operationId)}()
     {
         var queue = "${consumer.queue}"; // queue from specification
         var channel = _channelPool.GetChannel("${toPascalCase(
-    consumer.operationId
-  )}");
+          consumer.operationId
+        )}");
 
         // TODO: declare passive?
         channel.QueueDeclare(queue);
 
+        // IMPORTANT! If the routing key contains {some-parameter-name}
+        // you must change the routing key below to something meaningful for amqp service listening for messages.
+        // For demo purposes you can just replace it with the wildcard '#' which means it recieves 
+        // all messages no matter what the parameter is.
         channel.QueueBind(queue: queue,
                   exchange: "${consumer.exchange}",
                   routingKey: "${consumer.routingKey}");
@@ -138,11 +142,11 @@ public class AmqpService : IAmqpService
         {
             var body = ea.Body.ToArray();
             var message = JsonSerializer.Deserialize<${
-  consumer.messageType
-}>(Encoding.UTF8.GetString(body));
+              consumer.messageType
+            }>(Encoding.UTF8.GetString(body));
             _logger.Verbose("${toPascalCase(
-    consumer.messageType
-  )} received, {@${toPascalCase(consumer.messageType)}}", message);
+              consumer.messageType
+            )} received, {@${toPascalCase(consumer.messageType)}}", message);
 
             try
             {
@@ -153,8 +157,8 @@ public class AmqpService : IAmqpService
             catch (Exception e)
             {
                 _logger.Error(e, "Something went wrong trying to process message {@${toPascalCase(
-    consumer.messageType
-  )}},", message);
+                  consumer.messageType
+                )}},", message);
                 channel.BasicReject(ea.DeliveryTag, false);
             }
         };
@@ -164,8 +168,8 @@ public class AmqpService : IAmqpService
             consumer: consumer);
     }      
       `
-    )
-    .join('')}
+      )
+      .join('')}
 
     public void Dispose()
     {

@@ -4,6 +4,19 @@ import { Consumers } from '../components/Consumers';
 import { cleanString, getChannels } from '../utils/common';
 
 describe('Consumers component', () => {
+  it('should handle empty specification', () => {
+    const asyncapi = new AsyncAPIDocument({
+      asyncapi: '2.2.0',
+      defaultContentType: 'application/json',
+    });
+
+    const expected = ``;
+
+    const result = render(<Consumers channels={getChannels(asyncapi)} />);
+
+    expect(cleanString(result)).toEqual(cleanString(expected));
+  });
+
   it('should render consumer implementation', () => {
     const asyncapi = new AsyncAPIDocument({
       asyncapi: '2.2.0',

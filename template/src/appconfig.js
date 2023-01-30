@@ -16,14 +16,6 @@ export default function ({ asyncapi, params }) {
     return null;
   }
 
-  const server = Object.entries(asyncapi.servers())
-    .map(([serverName, server]) => {
-      if (serverName === params.server) {
-        return server.url();
-      }
-    })
-    .join('');
-
   // Notice that root component is the `File` component.
   return (
     <File name="appsettings.json">

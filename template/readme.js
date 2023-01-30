@@ -18,7 +18,12 @@ export default function ({ asyncapi, params }) {
 # RabbitMq Client for ${asyncapi.id()}
 ## IAmqpService
 This interface describes the channels in the specification.
+### Consumers
 ${consumers.map((channel) => {
+  return `${channel.routingKey} `;
+})}
+### Publishers
+${publishers.map((channel) => {
   return `${channel.routingKey} `;
 })}
 

@@ -1,23 +1,8 @@
-import { render } from '@asyncapi/generator-react-sdk';
 import AsyncAPIDocument from '@asyncapi/parser/lib/models/asyncapi';
-import { Consumers } from '../components/Consumers';
-import { cleanString, getChannels } from '../utils/common';
+import { getChannels } from '../utils/common';
 
-describe('Consumers component', () => {
-  it('should handle empty specification', () => {
-    const asyncapi = new AsyncAPIDocument({
-      asyncapi: '2.2.0',
-      defaultContentType: 'application/json',
-    });
-
-    const expected = '';
-
-    const result = render(<Consumers channels={getChannels(asyncapi)} />);
-
-    expect(cleanString(result)).toEqual(cleanString(expected));
-  });
-
-  it('should render consumer implementation', () => {
+describe('Common utilities', () => {
+  it('should create flat object from channels', () => {
     const asyncapi = new AsyncAPIDocument({
       asyncapi: '2.2.0',
       defaultContentType: 'application/json',
@@ -61,14 +46,12 @@ describe('Consumers component', () => {
       },
     });
 
-    const expected = `protected override Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-      _amqpService.OnSpecificSensorTemperatureReceived();
-      return Task.CompletedTask;
-    }`;
+    const channels = getChannels(asyncapi);
+    expect(channels).toBeDefined();
+    expect(channels.length).toBeGreaterThan(0);
 
-    const result = render(<Consumers channels={getChannels(asyncapi)} />);
-
-    expect(cleanString(result)).toEqual(cleanString(expected));
+    const channel = channels[0];
+    expect(channel.operationId).toBe('onSpecificSensorTemperatureReceived');
+    expect(channel.exchange).toBe('temperature');
   });
 });

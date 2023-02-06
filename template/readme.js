@@ -20,12 +20,12 @@ export default function ({ asyncapi, params }) {
 This interface describes the channels in the specification.
 ### Consumers
 ${consumers.map((channel) => {
-  return `${channel.routingKey} `;
-})}
+      return `${channel.routingKey} `;
+    })}
 ### Publishers
 ${publishers.map((channel) => {
-  return `${channel.routingKey} `;
-})}
+      return `${channel.routingKey} `;
+    })}
 
     `}</File>
   );

@@ -10,7 +10,7 @@ describe('Producer component tests', () => {
       defaultContentType: 'application/json',
     });
 
-    const expected = ``;
+    const expected = '';
 
     const result = render(<Publishers channels={getChannels(asyncapi)} />);
 

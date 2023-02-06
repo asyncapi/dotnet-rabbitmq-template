@@ -112,22 +112,22 @@ export function getMessageType(message) {
  */
 export function toCType(jsonSchemaType, property) {
   switch (jsonSchemaType.toLowerCase()) {
-    case 'string':
-      return 'String';
-    case 'integer':
-      return 'int';
-    case 'number':
-      return 'decimal';
-    case 'boolean':
-      return 'bool';
-    case 'object':
-      if (property) {
-        return `${property.uid()}Schema`;
-      }
-      return 'object';
+  case 'string':
+    return 'String';
+  case 'integer':
+    return 'int';
+  case 'number':
+    return 'decimal';
+  case 'boolean':
+    return 'bool';
+  case 'object':
+    if (property) {
+      return `${property.uid()}Schema`;
+    }
+    return 'object';
 
-    default:
-      return 'object';
+  default:
+    return 'object';
   }
 }
 
@@ -139,16 +139,16 @@ export function toCType(jsonSchemaType, property) {
  */
 export function castToCType(jsonSchemaType, variableToCast) {
   switch (jsonSchemaType.toLowerCase()) {
-    case 'string':
-      return `$"{${variableToCast}}"`;
-    case 'integer':
-      return `int.Parse(${variableToCast})`;
-    case 'number':
-      return `decimal.Parse(${variableToCast}, System.Globalization.CultureInfo.InvariantCulture)`;
-    case 'boolean':
-      return `bool.Parse(${variableToCast})`;
-    default:
-      throw new Error(`Parameter type not supported - ${jsonSchemaType}`);
+  case 'string':
+    return `$"{${variableToCast}}"`;
+  case 'integer':
+    return `int.Parse(${variableToCast})`;
+  case 'number':
+    return `decimal.Parse(${variableToCast}, System.Globalization.CultureInfo.InvariantCulture)`;
+  case 'boolean':
+    return `bool.Parse(${variableToCast})`;
+  default:
+    throw new Error(`Parameter type not supported - ${jsonSchemaType}`);
   }
 }
 
@@ -204,12 +204,15 @@ export function getChannels(asyncapi) {
       const operation = channel.hasPublish()
         ? channel.publish()
         : channel.subscribe();
-      const channelBinding = channel.hasBinding()
+      const channelBinding = channel.hasBindings()
         ? channel.binding('amqp')
         : {};
-      const operationBinding = operation.hasBinding()
+      const operationBinding = operation.hasBindings()
         ? operation.binding('amqp')
         : {};
+
+      const queue = channelBinding.queue;
+      const exchange = channelBinding.exchange;
 
       // this should generate a consumer
       return {
@@ -217,13 +220,9 @@ export function getChannels(asyncapi) {
         routingKey: channelName,
         operationId: operation.id(),
         operationDescription: operation.description(),
-        queue: channelBinding?.queue?.name,
-        prefetchCount: channelBinding?.queue?.['x-prefetch-count']
-          ? channelBinding.queue['x-prefetch-count']
-          : 0,
-        confirm: channelBinding?.queue?.['x-confirm']
-          ? channelBinding.queue['x-confirm']
-          : false,
+        queue: queue ? queue.name : '',
+        prefetchCount: queue ? channelBinding.queue['x-prefetch-count'] : 0,
+        confirm: queue ? channelBinding.queue['x-confirm'] : false,
         expiration: operationBinding['expiration'],
         userId: operationBinding['userId'],
         cc: operationBinding['cc'],
@@ -234,13 +233,11 @@ export function getChannels(asyncapi) {
         replyTo: operationBinding['replyTo'],
         timestamp: operationBinding['timestamp'],
         ack: operationBinding['ack'],
-        exchange: channelBinding?.exchange?.name,
-        exchangeType: channelBinding?.exchange?.type,
-        isDurable: channelBinding?.exchange?.durable,
-        isAutoDelete: channelBinding?.exchange?.autoDelete,
-        alternateExchange: channelBinding?.exchange?.['x-alternate-exchange']
-          ? channelBinding.exchange['x-alternate-exchange']
-          : '',
+        exchange: exchange ? exchange.name : '',
+        exchangeType: exchange ? exchange.type : 'topic',
+        isDurable: exchange ? exchange.durable : true,
+        isAutoDelete: exchange ? exchange.autoDelete : false,
+        alternateExchange: exchange ? exchange['x-alternate-exchange'] : '',
         messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
       };
     })
@@ -255,7 +252,7 @@ export function getPublishers(asyncapi) {
         const operation = channel.publish();
         const binding = channel.binding('amqp');
 
-        const publisher = {
+        return {
           routingKey: channelName,
           operationId: operation.id(),
           operationDescription: operation.description(),
@@ -265,10 +262,6 @@ export function getPublishers(asyncapi) {
           alternateExchange: binding.exchange['x-alternate-exchange'],
           messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
         };
-
-        console.log();
-
-        return publisher;
       }
     })
     .filter((publisher) => publisher);

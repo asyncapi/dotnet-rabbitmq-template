@@ -1,9 +1,9 @@
 import { render } from '@asyncapi/generator-react-sdk';
 import AsyncAPIDocument from '@asyncapi/parser/lib/models/asyncapi';
-import { Publishers } from '../components/Publishers';
-import { cleanString, getChannels } from '../utils/common';
+import { AmqpService } from '../components/templates/amqpservice';
+import { cleanString } from '../utils/common';
 
-describe('Producer component tests', () => {
+describe('AMQP service component', () => {
   it('should handle empty specification', () => {
     const asyncapi = new AsyncAPIDocument({
       asyncapi: '2.2.0',
@@ -12,20 +12,25 @@ describe('Producer component tests', () => {
 
     const expected = '';
 
-    const result = render(<Publishers channels={getChannels(asyncapi)} />);
+    const result = render(<AmqpService asyncapi={asyncapi} params={{}} />);
 
     expect(cleanString(result)).toEqual(cleanString(expected));
   });
 
-  it('should render producer implementation', () => {
+  it('should render a amqpservice', () => {
     const asyncapi = new AsyncAPIDocument({
       asyncapi: '2.2.0',
+      info: {
+        title: 'Test',
+        version: '1.0.0',
+      },
       defaultContentType: 'application/json',
       channels: {
         '{sensorId}.temperature': {
           publish: {
-            operationId: 'onSpecificSensorTemperatureChanged',
-            description: 'Publish a temperature change from a specific sensor.',
+            operationId: 'onSpecificSensorTemperatureReceived',
+            description:
+              'Subscribe to a temperature change from a specific sensor.',
             bindings: {
               amqp: {
                 expiration: 100000,
@@ -56,6 +61,26 @@ describe('Producer component tests', () => {
               name: 'temperature',
             },
           },
+          subscribe: {
+            operationId: 'onSpecificSensorTemperatureReceived',
+            description:
+              'Subscribe to a temperature change from a specific sensor.',
+            message: {
+              payload: {
+                id: 'temperature',
+                type: 'object',
+                additionalProperties: false,
+                properties: {
+                  celsius: { type: 'number', format: 'decimal' },
+                  kelvin: { type: 'number', format: 'decimal' },
+                  fahrenheit: { type: 'number', format: 'decimal' },
+                  origin: { type: ['null', 'string'] },
+                  created: { type: 'string', format: 'date-time' },
+                },
+              },
+              name: 'temperature',
+            },
+          },
           parameters: {
             sensorId: {
               'x-example': 'SENSOR-001',
@@ -66,34 +91,24 @@ describe('Producer component tests', () => {
           bindings: {
             amqp: {
               is: 'routingKey',
-              exchange: {
-                'x-alternate-exchange': 'lkab.iot.other',
-                name: 'lkab.iot.temperature',
-                type: 'topic',
-                durable: true,
-                autoDelete: false,
-              },
+              exchange: { name: 'temperature', type: 'topic', vhost: '/' },
+              queue: { name: 'temperatures' },
             },
           },
         },
       },
     });
 
-    const expected = `
-        // Code for the publisher: Send message on custom events, below is a timing example. 
-        // A real world example would probably read temeratures from some kind of I/O temperature sensor.
-        /*
-        var rnd = new Random((int) DateTime.Now.Ticks);
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            var message = new Temperature();
-            _amqpService.OnSpecificSensorTemperatureChanged(message);
-            await Task.Delay(rnd.Next(500, 3000), stoppingToken);
-        }
-        */`;
+    const result = render(
+      <AmqpService
+        asyncapi={asyncapi}
+        params={{ namespace: 'Demo', server: 'production' }}
+      />
+    );
 
-    const result = render(<Publishers channels={getChannels(asyncapi)} />);
-
-    expect(cleanString(result)).toEqual(cleanString(expected));
+    expect(cleanString(result)).toContain('var queue = "temperatures";');
+    expect(cleanString(result)).toContain(
+      'void OnSpecificSensorTemperatureReceived(Temperature message)'
+    );
   });
 });

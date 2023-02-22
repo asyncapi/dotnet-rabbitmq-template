@@ -62,22 +62,6 @@
       "asyncapiFileDir": {
         "description": "Custom location of the AsyncAPI file that you provided as an input in generation. By default it is located in the root of the output directory"
       },
-      "pdf": {
-        "description": "Set to `true` to get index.pdf generated next to your index.html",
-        "default": false
-      },
-      "png": {
-        "description": "Set to `true` to get index.png generated next to your index.html",
-        "default": false
-      },
-      "svg": {
-        "description": "Set to `true` to get index.svg generated next to your index.html",
-        "default": false
-      },
-      "maxTextSize": {
-        "description": "It is possible that in case of an extremely large AsyncAPI document default mermaid recommended text size will not be enough. Then you need to explicitly make it larger",
-        "default": 50000
-      },
       "namespace": {
         "description": "Name of the package, this is used as the base namespace for all classes within gen code. Useful for whitelabel as well ;)",
         "default": "Demo"
@@ -89,10 +73,6 @@
       "password": {
         "description": "The password to the AMQP broker",
         "default": "password"
-      },
-      "server": {
-        "description": "The AMQP server host address",
-        "required": true
       }
     },
     "filters": [

@@ -112,22 +112,22 @@ export function getMessageType(message) {
  */
 export function toCType(jsonSchemaType, property) {
   switch (jsonSchemaType.toLowerCase()) {
-  case 'string':
-    return 'String';
-  case 'integer':
-    return 'int';
-  case 'number':
-    return 'decimal';
-  case 'boolean':
-    return 'bool';
-  case 'object':
-    if (property) {
-      return `${property.uid()}Schema`;
-    }
-    return 'object';
+    case 'string':
+      return 'String';
+    case 'integer':
+      return 'int';
+    case 'number':
+      return 'decimal';
+    case 'boolean':
+      return 'bool';
+    case 'object':
+      if (property) {
+        return `${property.uid()}Schema`;
+      }
+      return 'object';
 
-  default:
-    return 'object';
+    default:
+      return 'object';
   }
 }
 
@@ -139,16 +139,16 @@ export function toCType(jsonSchemaType, property) {
  */
 export function castToCType(jsonSchemaType, variableToCast) {
   switch (jsonSchemaType.toLowerCase()) {
-  case 'string':
-    return `$"{${variableToCast}}"`;
-  case 'integer':
-    return `int.Parse(${variableToCast})`;
-  case 'number':
-    return `decimal.Parse(${variableToCast}, System.Globalization.CultureInfo.InvariantCulture)`;
-  case 'boolean':
-    return `bool.Parse(${variableToCast})`;
-  default:
-    throw new Error(`Parameter type not supported - ${jsonSchemaType}`);
+    case 'string':
+      return `$"{${variableToCast}}"`;
+    case 'integer':
+      return `int.Parse(${variableToCast})`;
+    case 'number':
+      return `decimal.Parse(${variableToCast}, System.Globalization.CultureInfo.InvariantCulture)`;
+    case 'boolean':
+      return `bool.Parse(${variableToCast})`;
+    default:
+      throw new Error(`Parameter type not supported - ${jsonSchemaType}`);
   }
 }
 
@@ -199,70 +199,121 @@ export function cleanString(str) {
 
 export function getChannels(asyncapi) {
   const channels = asyncapi.channels();
+
+  const createPublisher = (operation) => {
+    return {
+      operationId: toPascalCase(operation.id()),
+      operationDescription: operation.description(),
+      expiration: operation.hasBindings()
+        ? operation.binding('amqp')['expiration']
+        : 1000,
+      userId: operation.hasBindings()
+        ? operation.binding('amqp')['userId']
+        : 'user',
+      cc: operation.hasBindings() ? operation.binding('amqp')['cc'] : '',
+      bcc: operation.hasBindings() ? operation.binding('amqp')['bcc'] : '',
+      priority: operation.hasBindings()
+        ? operation.binding('amqp')['priority']
+        : 1,
+      deliveryMode: operation.hasBindings()
+        ? operation.binding('amqp')['deliveryMode']
+        : '',
+      mandatory: operation.hasBindings()
+        ? operation.binding('amqp')['mandatory']
+        : true,
+      replyTo: operation.hasBindings()
+        ? operation.binding('amqp')['replyTo']
+        : '',
+      timestamp: operation.hasBindings()
+        ? operation.binding('amqp')['timestamp']
+        : '',
+      ack: operation.hasBindings() ? operation.binding('amqp')['ack'] : true,
+      messageType: toPascalCase(
+        operation._json && operation._json.message
+          ? operation._json.message.name
+          : ''
+      ),
+    };
+  };
+
+  const createSubscriber = (operation) => {
+    return {
+      operationId: toPascalCase(operation.id()),
+      operationDescription: operation.description(),
+      messageType: toPascalCase(
+        operation._json && operation._json.message
+          ? operation._json.message.name
+          : ''
+      ),
+    };
+  };
+
   return Object.entries(channels)
     .map(([channelName, channel]) => {
+      const defaultOperationBinding = {
+        expiration: 1000,
+        userId: 'user',
+        cc: '',
+        bcc: '',
+        priority: 1,
+        deliveryMode: '',
+        mandatory: true,
+        replyTo: '',
+        timestamp: '',
+        ack: true,
+      };
+
       const operation = channel.hasPublish()
         ? channel.publish()
         : channel.subscribe();
+
       const channelBinding = channel.hasBindings()
         ? channel.binding('amqp')
         : {};
       const operationBinding = operation.hasBindings()
         ? operation.binding('amqp')
-        : {};
+        : defaultOperationBinding;
 
-      const queue = channelBinding.queue;
-      const exchange = channelBinding.exchange;
+      const defaultQueue = {
+        name: '',
+        'x-prefetch-count': 100,
+        'x-confirm': false,
+      };
 
-      // this should generate a consumer
-      return {
-        isPublish: channel.hasPublish(),
+      const defaultExchange = {
+        name: '',
+        type: 'topic',
+        durable: true,
+        autoDelete: false,
+        'x-alternate-exchange': '',
+        vhost: '/',
+      };
+
+      const queue = channelBinding.queue ? channelBinding.queue : defaultQueue;
+      const exchange = channelBinding.exchange
+        ? channelBinding.exchange
+        : defaultExchange;
+
+      const output = {
         routingKey: channelName,
-        operationId: operation.id(),
-        operationDescription: operation.description(),
+        publisher: channel.hasPublish()
+          ? createPublisher(channel.publish())
+          : undefined,
+        subscriber: channel.hasSubscribe()
+          ? createSubscriber(channel.subscribe())
+          : undefined,
         queue: queue ? queue.name : '',
-        prefetchCount: queue ? channelBinding.queue['x-prefetch-count'] : 0,
-        confirm: queue ? channelBinding.queue['x-confirm'] : false,
-        expiration: operationBinding['expiration'],
-        userId: operationBinding['userId'],
-        cc: operationBinding['cc'],
-        bcc: operationBinding['bcc'],
-        priority: operationBinding['priority'],
-        deliveryMode: operationBinding['deliveryMode'],
-        mandatory: operationBinding['mandatory'],
-        replyTo: operationBinding['replyTo'],
-        timestamp: operationBinding['timestamp'],
-        ack: operationBinding['ack'],
+        prefetchCount: queue ? queue['x-prefetch-count'] : 0,
+        confirm: queue ? queue['x-confirm'] : false,
         exchange: exchange ? exchange.name : '',
         exchangeType: exchange ? exchange.type : 'topic',
+        vhost: exchange ? exchange.vhost : '/',
         isDurable: exchange ? exchange.durable : true,
         isAutoDelete: exchange ? exchange.autoDelete : false,
         alternateExchange: exchange ? exchange['x-alternate-exchange'] : '',
-        messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
       };
-    })
-    .filter((publisher) => publisher);
-}
 
-export function getPublishers(asyncapi) {
-  const channels = asyncapi.channels();
-  return Object.entries(channels)
-    .map(([channelName, channel]) => {
-      if (channel.hasPublish() && channel.hasBinding('amqp')) {
-        const operation = channel.publish();
-        const binding = channel.binding('amqp');
-
-        return {
-          routingKey: channelName,
-          operationId: operation.id(),
-          operationDescription: operation.description(),
-          queue: binding.queue.name,
-          prefetchCount: binding.exchange['x-prefetch-count'],
-          exchange: binding.exchange.name,
-          alternateExchange: binding.exchange['x-alternate-exchange'],
-          messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
-        };
-      }
+      return output;
     })
     .filter((publisher) => publisher);
 }

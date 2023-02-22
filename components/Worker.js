@@ -11,8 +11,8 @@ namespace ${params.namespace}
 {
     /// <summary>
     /// Generated worker for ${asyncapi.info().title()}, ${asyncapi
-  .info()
-  .version()}
+    .info()
+    .version()}
     /// </summary>
     public class Worker : BackgroundService
     {
@@ -23,7 +23,11 @@ namespace ${params.namespace}
             _amqpService = new AmqpService(configuration);
         }
 
-        ${childrenContent}
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+          ${childrenContent}
+          return Task.CompletedTask;
+        }
         
         public override void Dispose()
         {

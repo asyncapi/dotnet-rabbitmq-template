@@ -16,14 +16,14 @@ Have you found a bug or have an idea for improvement? Feel free to contribute! S
 ## Example usage
 Given any AsyncAPI file (`AsyncAPI.yml`) first generate the client with the [AsyncAPI generator](https://github.com/asyncapi/generator) such as 
 ```bash
-ag .\asyncapi.yaml .\dotnet-rabbitmq-template\ -o .\output --force-write -p server=production
+ag .\asyncapi.yaml .\dotnet-rabbitmq-template\ -o .\output --force-write
 ```
 
 # How to use
 The generated output shall be seen a subscriber and/or publisher of message on/from a rabbit mq broker.
 
 ## Requirements
-* @asyncapi/generator < v2.0.0 >v1.1.1
+* @asyncapi/generator < v2.0.0 > v1.1.1
 
 Install the generator through [npm or run it from docker official installer](https://github.com/asyncapi/generator#install).
 

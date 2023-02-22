@@ -1,25 +1,16 @@
 import { render } from '@asyncapi/generator-react-sdk';
 import AsyncAPIDocument from '@asyncapi/parser/lib/models/asyncapi';
-import { Consumers } from '../components/Consumers';
-import { cleanString, getChannels } from '../utils/common';
+import { IAmqpService } from '../components/templates/amqpservice.interface';
+import { cleanString } from '../utils/common';
 
-describe('Consumers component', () => {
-  it('should handle empty specification', () => {
+describe('AMQP interface component', () => {
+  it('should render a amqp service interface', () => {
     const asyncapi = new AsyncAPIDocument({
       asyncapi: '2.2.0',
-      defaultContentType: 'application/json',
-    });
-
-    const expected = '';
-
-    const result = render(<Consumers channels={getChannels(asyncapi)} />);
-
-    expect(cleanString(result)).toEqual(cleanString(expected));
-  });
-
-  it('should render consumer implementation', () => {
-    const asyncapi = new AsyncAPIDocument({
-      asyncapi: '2.2.0',
+      info: {
+        title: 'Test',
+        version: '1.0.0',
+      },
       defaultContentType: 'application/json',
       channels: {
         '{sensorId}.temperature': {
@@ -61,12 +52,24 @@ describe('Consumers component', () => {
       },
     });
 
-    const expected = `
-      // Code for the subscriber: Recieves messages from RabbitMq
-      _amqpService.OnSpecificSensorTemperatureReceived();
-    `;
+    const result = render(
+      <IAmqpService asyncapi={asyncapi} params={{ namespace: 'Demo' }} />
+    );
 
-    const result = render(<Consumers channels={getChannels(asyncapi)} />);
+    expect(cleanString(result)).toContain(
+      'void OnSpecificSensorTemperatureReceived();'
+    );
+  });
+
+  it('should handle empty specification', () => {
+    const asyncapi = new AsyncAPIDocument({
+      asyncapi: '2.2.0',
+      defaultContentType: 'application/json',
+    });
+
+    const expected = '';
+
+    const result = render(<IAmqpService asyncapi={asyncapi} params={{}} />);
 
     expect(cleanString(result)).toEqual(cleanString(expected));
   });

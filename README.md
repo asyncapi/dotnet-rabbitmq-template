@@ -27,6 +27,14 @@ The generated output shall be seen a subscriber and/or publisher of message on/f
 
 Install the generator through [npm or run it from docker official installer](https://github.com/asyncapi/generator#install).
 
+## Template Parameters
+These are the available template parameters:
+|Parameter|Type|Description|
+|---|---|---|
+| namespace | String | Use this parameter to specify the namespace for the generated C# client `--param "namespace=Company.Services"`, defaults to `Demo`
+| user | String | Use this parameter to specify a user for for accessing the RabbitMq cluster `--param "user=username"`, defaults to `user`
+| password | String | Use this parameter to specify a password for for accessing the RabbitMq cluster `--param "password=password"`, defaults to `password`
+
 # Contributing
 
 Before contributing please read the [CONTRIBUTING](CONTRIBUTING.md) document.

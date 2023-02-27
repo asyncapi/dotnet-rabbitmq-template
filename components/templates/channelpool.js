@@ -130,7 +130,7 @@ public class ChannelPool : IChannelPool
 };
 
 export function ChannelPool({ asyncapi, params }) {
-  if (!asyncapi.hasComponents()) {
+  if (!asyncapi.hasChannels()) {
     return null;
   }
 

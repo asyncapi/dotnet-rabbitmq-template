@@ -23,7 +23,11 @@ namespace ${params.namespace}
             _amqpService = new AmqpService(configuration);
         }
 
-        ${childrenContent}
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+          ${childrenContent}
+          return Task.CompletedTask;
+        }
         
         public override void Dispose()
         {

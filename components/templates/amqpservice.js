@@ -1,20 +1,11 @@
-import { getChannels, toPascalCase } from '../../utils/common';
+import { getChannels } from '../../utils/common';
 
 const template = (asyncapi, params) => {
-  const publishers = getChannels(asyncapi).filter(
-    (channel) => channel.isPublish
-  );
-  const consumers = getChannels(asyncapi).filter(
-    (channel) => !channel.isPublish
-  );
+  const channels = getChannels(asyncapi);
 
-  const protocol = Object.entries(asyncapi.servers())
-    .map(([serverName, server]) => {
-      if (serverName === params.server) {
-        return server.protocol();
-      }
-    })
-    .join('');
+  if (channels.length === 0) {
+    return null;
+  }
 
   return `using System;
 using System.Collections.Generic;
@@ -51,7 +42,7 @@ public class AmqpService : IAmqpService
 
         var factory = new ConnectionFactory
         {
-            Uri = new Uri($"${protocol}://{user}:{password}@{host}"),
+            Uri = new Uri($"amqps://{user}:{password}@{host}"),
             RequestedHeartbeat = TimeSpan.FromSeconds(10)
         };
 
@@ -59,48 +50,43 @@ public class AmqpService : IAmqpService
         _channelPool = ChannelPool.Create(_connection);
     }
 
-    ${publishers
+    ${channels
+    .filter((channel) => channel.publisher)
     .map(
-      (publisher) => `/// <summary>
+      (channel) => `/// <summary>
     /// Operations from async api specification
     /// </summary>
     /// <param name="message">The message to be handled by this amqp operation</param>
-    public void ${toPascalCase(publisher.operationId)}(${
-  publisher.messageType
-} message)
+    public void ${channel.publisher.operationId}(${channel.publisher.messageType} message)
     {
-        var exchange = "${publisher.exchange}";
-        var routingKey = "${publisher.routingKey}";
+        var exchange = "${channel.exchange}";
+        var routingKey = "${channel.routingKey}";
 
-        var channel = _channelPool.GetChannel("${toPascalCase(
-    publisher.operationId
-  )}");
+        var channel = _channelPool.GetChannel("${channel.publisher.operationId}");
         var exchangeProps = new Dictionary<string, object>
         {
-            {"CC", "${publisher.cc}"},
-            {"BCC", "${publisher.bcc}"},
-            {"alternate-exchange", "${publisher.alternateExchange}"},
+            {"CC", "${channel.publisher.cc}"},
+            {"BCC", "${channel.publisher.bcc}"},
+            {"alternate-exchange", "${channel.publisher.alternateExchange}"},
         };
         
         channel.ExchangeDeclare(
             exchange: exchange, // exchange.name from channel binding
-            type: "${publisher.exchangeType}", // type from channel binding
-            ${publisher.isDurable}, // durable from channel binding
-            ${publisher.isAutoDelete}, // autoDelete from channel binding
+            type: "${channel.publisher.exchangeType}", // type from channel binding
+            ${channel.isDurable}, // durable from channel binding
+            ${channel.isAutoDelete}, // autoDelete from channel binding
             exchangeProps);
 
         var props = channel.CreateBasicProperties();
         
         props.CorrelationId = $"{Guid.NewGuid()}";
-        props.ReplyTo = "${publisher.replyTo}";
-        props.DeliveryMode = Byte.Parse("${publisher.deliveryMode}");
-        props.Priority = ${publisher.priority};
+        props.ReplyTo = "${channel.publisher.replyTo}";
+        props.DeliveryMode = Byte.Parse("${channel.publisher.deliveryMode}");
+        props.Priority = ${channel.publisher.priority};
         props.Timestamp = new AmqpTimestamp(DateTimeOffset.UnixEpoch.Ticks);
-        props.Expiration = "${publisher.expiration}";
+        props.Expiration = "${channel.publisher.expiration}";
 
-        _logger.Verbose("Sending message {@${
-  publisher.messageType
-}} with correlation id {CorrelationId}", 
+        _logger.Verbose("Sending message {@${channel.publisher.messageType}} with correlation id {CorrelationId}", 
             message, 
             props.CorrelationId);
         
@@ -108,7 +94,7 @@ public class AmqpService : IAmqpService
 
         channel.BasicPublish(exchange: exchange,
             routingKey: routingKey,
-            mandatory: ${publisher.mandatory},
+            mandatory: ${channel.publisher.mandatory},
             basicProperties: props,
             body: body);
     }
@@ -117,32 +103,31 @@ public class AmqpService : IAmqpService
     )
     .join('')}
 
-    ${consumers
+    ${channels
+    .filter((channel) => channel.subscriber)
     .map(
-      (consumer) => `public void ${toPascalCase(consumer.operationId)}()
+      (channel) => `public void ${channel.subscriber.operationId}()
     {
-        var queue = "${consumer.queue}"; // queue from specification
-        var channel = _channelPool.GetChannel("${toPascalCase(
-    consumer.operationId
-  )}");
+        var queue = "${channel.queue}"; // queue from specification
+        var channel = _channelPool.GetChannel("${channel.subscriber.operationId}");
 
         // TODO: declare passive?
         channel.QueueDeclare(queue);
 
+        // IMPORTANT! If the routing key contains {some-parameter-name}
+        // you must change the routing key below to something meaningful for amqp service listening for messages.
+        // For demo purposes you can just replace it with the wildcard '#' which means it recieves 
+        // all messages no matter what the parameter is.
         channel.QueueBind(queue: queue,
-                  exchange: "${consumer.exchange}",
-                  routingKey: "${consumer.routingKey}");
+                  exchange: "${channel.exchange}",
+                  routingKey: "${channel.routingKey}");
 
         var consumer = new EventingBasicConsumer(channel);
         consumer.Received += (_, ea) =>
         {
             var body = ea.Body.ToArray();
-            var message = JsonSerializer.Deserialize<${
-  consumer.messageType
-}>(Encoding.UTF8.GetString(body));
-            _logger.Verbose("${toPascalCase(
-    consumer.messageType
-  )} received, {@${toPascalCase(consumer.messageType)}}", message);
+            var message = JsonSerializer.Deserialize<${channel.subscriber.messageType}>(Encoding.UTF8.GetString(body));
+            _logger.Verbose("${channel.subscriber.messageType} received, {@${channel.subscriber.messageType}}", message);
 
             try
             {
@@ -152,9 +137,7 @@ public class AmqpService : IAmqpService
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Something went wrong trying to process message {@${toPascalCase(
-    consumer.messageType
-  )}},", message);
+                _logger.Error(e, "Something went wrong trying to process message {@${channel.subscriber.messageType}},", message);
                 channel.BasicReject(ea.DeliveryTag, false);
             }
         };
@@ -176,7 +159,7 @@ public class AmqpService : IAmqpService
 };
 
 export function AmqpService({ asyncapi, params }) {
-  if (!asyncapi.hasComponents()) {
+  if (!asyncapi.hasChannels()) {
     return null;
   }
 

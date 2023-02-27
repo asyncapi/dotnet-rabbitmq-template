@@ -1,35 +1,36 @@
 import { getChannels, toPascalCase } from '../../utils/common';
 
-const template = (publishers, consumers, params) => `using System;
+const template = (channels, params) => `using System;
 using ${params.namespace}.Models;
 
 namespace ${params.namespace}.Services.Interfaces;
 
 public interface IAmqpService : IDisposable
 {
-    ${publishers
+    ${channels
+    .filter((channel) => channel.publisher)
     .map(
-      (publisher) => `
+      (channel) => `
     /// <summary>
-    /// Operations from async api specification
+    /// Publish operation from ${channel.routingKey}
     /// </summary>
     /// <param name="message">The message to be handled by this amqp operation</param>
-    void ${toPascalCase(publisher.operationId)}(${
-  publisher.messageType
-} message);
+    void ${toPascalCase(channel.publisher.operationId)}(${toPascalCase(
+  channel.publisher.messageType
+)} message);
         
         `
     )
     .join('')}
 
-      ${consumers
+      ${channels
+    .filter((channel) => channel.subscriber)
     .map(
-      (consumer) => `
+      (channel) => `
       /// <summary>
-      /// Operations from async api specification
+      /// Subscribe operation from ${channel.routingKey}
       /// </summary>
-      /// <param name="message">The message to be handled by this amqp operation</param>
-      void ${toPascalCase(consumer.operationId)}();
+      void ${toPascalCase(channel.subscriber.operationId)}();
           
           `
     )
@@ -37,16 +38,11 @@ public interface IAmqpService : IDisposable
 }`;
 
 export function IAmqpService({ asyncapi, params }) {
-  if (!asyncapi.hasComponents()) {
+  const channels = getChannels(asyncapi);
+
+  if (channels.length === 0) {
     return null;
   }
 
-  const publishers = getChannels(asyncapi).filter(
-    (channel) => channel.isPublish
-  );
-  const consumers = getChannels(asyncapi).filter(
-    (channel) => !channel.isPublish
-  );
-
-  return template(publishers, consumers, params);
+  return template(channels, params);
 }

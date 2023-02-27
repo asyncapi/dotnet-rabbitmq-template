@@ -5,22 +5,17 @@ import { Worker } from '../../components/Worker';
 import { getChannels } from '../../utils/common';
 
 export default function ({ asyncapi, params }) {
-  if (!asyncapi.hasComponents()) {
+  const channels = getChannels(asyncapi);
+
+  if (channels.length === 0) {
     return null;
   }
-
-  const publishers = getChannels(asyncapi).filter(
-    (channel) => channel.isPublish
-  );
-  const consumers = getChannels(asyncapi).filter(
-    (channel) => !channel.isPublish
-  );
 
   return (
     <File name="Worker.cs">
       <Worker asyncapi={asyncapi} params={params}>
-        {render(<Consumers channels={consumers} />)}
-        {render(<Publishers channels={publishers} />)}
+        {render(<Consumers channels={channels} />)}
+        {render(<Publishers channels={channels} />)}
       </Worker>
     </File>
   );

@@ -199,86 +199,99 @@ export function cleanString(str) {
 
 export function getChannels(asyncapi) {
   const channels = asyncapi.channels();
+
+  const createPublisher = (operation) => {
+    return {
+      operationId: toPascalCase(operation.id()),
+      operationDescription: operation.description(),
+      expiration: operation.hasBindings()
+        ? operation.binding('amqp')['expiration']
+        : 1000,
+      userId: operation.hasBindings()
+        ? operation.binding('amqp')['userId']
+        : 'user',
+      cc: operation.hasBindings() ? operation.binding('amqp')['cc'] : '',
+      bcc: operation.hasBindings() ? operation.binding('amqp')['bcc'] : '',
+      priority: operation.hasBindings()
+        ? operation.binding('amqp')['priority']
+        : 1,
+      deliveryMode: operation.hasBindings()
+        ? operation.binding('amqp')['deliveryMode']
+        : '',
+      mandatory: operation.hasBindings()
+        ? operation.binding('amqp')['mandatory']
+        : true,
+      replyTo: operation.hasBindings()
+        ? operation.binding('amqp')['replyTo']
+        : '',
+      timestamp: operation.hasBindings()
+        ? operation.binding('amqp')['timestamp']
+        : '',
+      ack: operation.hasBindings() ? operation.binding('amqp')['ack'] : true,
+      messageType: toPascalCase(
+        operation._json && operation._json.message
+          ? operation._json.message.name
+          : ''
+      ),
+    };
+  };
+
+  const createSubscriber = (operation) => {
+    return {
+      operationId: toPascalCase(operation.id()),
+      operationDescription: operation.description(),
+      messageType: toPascalCase(
+        operation._json && operation._json.message
+          ? operation._json.message.name
+          : ''
+      ),
+    };
+  };
+
   return Object.entries(channels)
     .map(([channelName, channel]) => {
-      if (channel.hasPublish() && channel.hasBinding('amqp')) {
-        const operation = channel.publish();
-        const channelBinding = channel.binding('amqp');
-        const operationBinding = operation.binding('amqp');
+      const channelBinding = channel.hasBindings()
+        ? channel.binding('amqp')
+        : {};
 
-        // this should generate a consumer
-        return {
-          isPublish: true,
-          routingKey: channelName,
-          operationId: operation.id(),
-          expiration: operationBinding['expiration'],
-          userId: operationBinding['userId'],
-          cc: operationBinding['cc'],
-          bcc: operationBinding['bcc'],
-          priority: operationBinding['priority'],
-          deliveryMode: operationBinding['deliveryMode'],
-          mandatory: operationBinding['mandatory'],
-          replyTo: operationBinding['replyTo'],
-          timestamp: operationBinding['timestamp'],
-          ack: operationBinding['ack'],
-          exchange: channelBinding.exchange.name,
-          exchangeType: channelBinding.exchange.type,
-          isDurable: channelBinding.exchange.durable,
-          isAutoDelete: channelBinding.exchange.autoDelete,
-          alternateExchange: channelBinding.exchange['x-alternate-exchange'],
-          messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
-        };
-      }
+      const defaultQueue = {
+        name: '',
+        'x-prefetch-count': 100,
+        'x-confirm': false,
+      };
 
-      if (channel.hasSubscribe() && channel.hasBinding('amqp')) {
-        const operation = channel.subscribe();
-        const channelBinding = channel.binding('amqp');
+      const defaultExchange = {
+        name: '',
+        type: 'topic',
+        durable: true,
+        autoDelete: false,
+        'x-alternate-exchange': '',
+        vhost: '/',
+      };
 
-        // this should generate a publisher
-        return {
-          isPublish: false,
-          routingKey: channelName,
-          operationId: operation.id(),
-          operationDescription: operation.description(),
-          queue: channelBinding.queue.name,
-          prefetchCount: channelBinding.queue['x-prefetch-count'],
-          confirm: channelBinding.queue['x-confirm'],
-          exchange: channelBinding.exchange.name,
-          exchangeType: channelBinding.exchange.type,
-          messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
-        };
-      }
+      const queue = channelBinding.queue ? channelBinding.queue : defaultQueue;
+      const exchange = channelBinding.exchange
+        ? channelBinding.exchange
+        : defaultExchange;
+
+      return {
+        routingKey: channelName,
+        publisher: channel.hasPublish()
+          ? createPublisher(channel.publish())
+          : undefined,
+        subscriber: channel.hasSubscribe()
+          ? createSubscriber(channel.subscribe())
+          : undefined,
+        queue: queue ? queue.name : '',
+        prefetchCount: queue ? queue['x-prefetch-count'] : 0,
+        confirm: queue ? queue['x-confirm'] : false,
+        exchange: exchange ? exchange.name : '',
+        exchangeType: exchange ? exchange.type : 'topic',
+        vhost: exchange ? exchange.vhost : '/',
+        isDurable: exchange ? exchange.durable : true,
+        isAutoDelete: exchange ? exchange.autoDelete : false,
+        alternateExchange: exchange ? exchange['x-alternate-exchange'] : '',
+      };
     })
     .filter((publisher) => publisher);
 }
-
-export function getPublishers(asyncapi) {
-  const channels = asyncapi.channels();
-  return Object.entries(channels)
-    .map(([channelName, channel]) => {
-      if (channel.hasPublish() && channel.hasBinding('amqp')) {
-        const operation = channel.publish();
-        const binding = channel.binding('amqp');
-
-        const publisher = {
-          routingKey: channelName,
-          operationId: operation.id(),
-          operationDescription: operation.description(),
-          queue: binding.queue.name,
-          prefetchCount: binding.exchange['x-prefetch-count'],
-          exchange: binding.exchange.name,
-          alternateExchange: binding.exchange['x-alternate-exchange'],
-          messageType: toPascalCase(operation._json.message.name), // TODO: handle multiple messages on a operation
-        };
-
-        console.log();
-
-        return publisher;
-      }
-    })
-    .filter((publisher) => publisher);
-}
-
-export const addBasicProperty = () => {
-  return 'test';
-};

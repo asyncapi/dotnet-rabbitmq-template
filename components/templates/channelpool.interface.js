@@ -17,9 +17,5 @@ public interface IChannelPool : IDisposable
 }`;
 
 export function IChannelPool({ asyncapi, params }) {
-  if (!asyncapi.hasComponents()) {
-    return null;
-  }
-
   return template(asyncapi, params);
 }

@@ -1,0 +1,95 @@
+asyncapi: 2.2.0
+id: urn:com:lkab:rmq:iot:temperature-sensor
+info:
+  title: Temperature sensor API
+  contact: 
+    name: LKAB Support
+    url: https://www.asyncapi.org/support
+    email: support@lkab.com
+  version: 1.0.3
+  description: |
+    The temperature API provides channels send temperature change from sensors and reads temperature change from sensors
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+tags:
+  - name: iot
+    description: Tag for iot services 
+servers:
+  production:
+    url: goose.rmq2.cloudamqp.com/hohmawct
+    protocol: amqps
+channels:
+  'lkab.iot.v1.{sensorId}.temperature':
+    parameters:
+      sensorId:
+        description: 'Id of the temperature sensor. Use # to get temperatures from all sensors'
+        x-example: SENSOR-001
+        schema:
+          type: string
+    subscribe:
+      operationId: onSensorTemperatureChange
+      description: Recieve a temperature change from a sensor
+      message:
+        correlationId:
+          location: $message.header#/correlation_id
+        name: Temperature
+        payload:
+          $ref: '#/components/schemas/temperature'
+    publish:
+      operationId: onSpecificSensorTemperatureReceived
+      description: Subscribe to a temperature change from a specific sensor
+      bindings:
+        amqp:
+          expiration: 100000
+          userId: guest
+          cc: ['lkab.user.logs']
+          bcc: ['lkab.audit']
+          priority: 10
+          deliveryMode: 2
+          mandatory: false
+          replyTo: user.signedup
+          timestamp: true
+          ack: true
+      message:
+        correlationId:
+          location: $message.header#/correlation_id
+        name: Temperature
+        payload:
+          $ref: '#/components/schemas/temperature'
+    bindings:
+      amqp:
+        is: routingKey
+        queue:
+          name: temperatures
+          x-prefetch-count: 100
+          x-confirm: true
+        exchange:
+          name: lkab.iot.temperature
+          type: topic
+          durable: true
+          autoDelete: false
+          vhost: iot
+components:
+  schemas:
+    temperature:
+      type: object
+      properties:
+        origin:
+          type: string
+          description: The origin of this temperature
+        celcius:
+          type: number
+          description: Temperature measured in Celcius
+        kelvin:
+          type: number
+          description: Temperature measured in Kelvin
+        fahrenheit:
+          type: number
+          format: number
+          description: Temperature measured in Fahrenheit
+        created:
+          type: string
+          format: date-time
+          description: Date and time when the tempreture was measured.
+

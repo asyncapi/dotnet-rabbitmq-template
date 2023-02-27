@@ -1,11 +1,13 @@
 import AsyncAPIDocument from '@asyncapi/parser/lib/models/asyncapi';
 import { getChannels } from '../utils/common';
 
+const contentType = 'application/json';
+
 describe('Common utilities', () => {
   it('should handle multiple operations in one channel', () => {
     const asyncapi = new AsyncAPIDocument({
       asyncapi: '2.2.0',
-      defaultContentType: 'application/json',
+      defaultContentType: contentType,
       channels: {
         '{sensorId}.temperature': {
           parameters: {
@@ -24,8 +26,7 @@ describe('Common utilities', () => {
           },
           publish: {
             operationId: 'onSpecificSensorTemperatureReceived',
-            description:
-              'Subscribe to a temperature change from a specific sensor.',
+            description: 'Publish a temperature change.',
             bindings: {
               amqp: {
                 expiration: 100000,
@@ -96,7 +97,7 @@ describe('Common utilities', () => {
   it('should create flat object from channels', () => {
     const asyncapi = new AsyncAPIDocument({
       asyncapi: '2.2.0',
-      defaultContentType: 'application/json',
+      defaultContentType: contentType,
       channels: {
         '{sensorId}.temperature': {
           subscribe: {
@@ -154,7 +155,7 @@ describe('Common utilities', () => {
   it('should handle empty channels', () => {
     const asyncapi = new AsyncAPIDocument({
       asyncapi: '2.2.0',
-      defaultContentType: 'application/json',
+      defaultContentType: contentType,
     });
 
     const channels = getChannels(asyncapi);

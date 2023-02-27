@@ -8,33 +8,33 @@ namespace ${params.namespace}.Services.Interfaces;
 public interface IAmqpService : IDisposable
 {
     ${channels
-      .filter((channel) => channel.publisher)
-      .map(
-        (channel) => `
+    .filter((channel) => channel.publisher)
+    .map(
+      (channel) => `
     /// <summary>
     /// Publish operation from ${channel.routingKey}
     /// </summary>
     /// <param name="message">The message to be handled by this amqp operation</param>
     void ${toPascalCase(channel.publisher.operationId)}(${toPascalCase(
-          channel.publisher.messageType
-        )} message);
+  channel.publisher.messageType
+)} message);
         
         `
-      )
-      .join('')}
+    )
+    .join('')}
 
       ${channels
-        .filter((channel) => channel.subscriber)
-        .map(
-          (channel) => `
+    .filter((channel) => channel.subscriber)
+    .map(
+      (channel) => `
       /// <summary>
       /// Subscribe operation from ${channel.routingKey}
       /// </summary>
       void ${toPascalCase(channel.subscriber.operationId)}();
           
           `
-        )
-        .join('')}
+    )
+    .join('')}
 }`;
 
 export function IAmqpService({ asyncapi, params }) {

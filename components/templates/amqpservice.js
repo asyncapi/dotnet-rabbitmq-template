@@ -22,8 +22,8 @@ namespace ${params.namespace}.Services;
 
 /// <summary>
 /// Generated consumer for ${asyncapi.info().title()}, ${asyncapi
-    .info()
-    .version()}
+  .info()
+  .version()}
 /// </summary>
 public class AmqpService : IAmqpService
 {
@@ -51,9 +51,9 @@ public class AmqpService : IAmqpService
     }
 
     ${channels
-      .filter((channel) => channel.publisher)
-      .map(
-        (channel) => `/// <summary>
+    .filter((channel) => channel.publisher)
+    .map(
+      (channel) => `/// <summary>
     /// Operations from async api specification
     /// </summary>
     /// <param name="message">The message to be handled by this amqp operation</param>
@@ -100,13 +100,13 @@ public class AmqpService : IAmqpService
     }
     
     `
-      )
-      .join('')}
+    )
+    .join('')}
 
     ${channels
-      .filter((channel) => channel.subscriber)
-      .map(
-        (channel) => `public void ${channel.subscriber.operationId}()
+    .filter((channel) => channel.subscriber)
+    .map(
+      (channel) => `public void ${channel.subscriber.operationId}()
     {
         var queue = "${channel.queue}"; // queue from specification
         var channel = _channelPool.GetChannel("${channel.subscriber.operationId}");
@@ -147,8 +147,8 @@ public class AmqpService : IAmqpService
             consumer: consumer);
     }      
       `
-      )
-      .join('')}
+    )
+    .join('')}
 
     public void Dispose()
     {

@@ -11,8 +11,8 @@ namespace ${params.namespace}
 {
     /// <summary>
     /// Generated worker for ${asyncapi.info().title()}, ${asyncapi
-    .info()
-    .version()}
+  .info()
+  .version()}
     /// </summary>
     public class Worker : BackgroundService
     {

@@ -28,7 +28,7 @@
   "dependencies": {
     "@asyncapi/generator-filters": "^1.1.0",
     "@asyncapi/generator-hooks": "^0.1.0",
-    "@asyncapi/modelina": "^0.59.4",
+    "@asyncapi/modelina": "^1.3.0",
     "lodash": "^4.17.15"
   },
   "devDependencies": {

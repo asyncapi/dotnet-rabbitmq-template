@@ -32,7 +32,7 @@
     "lodash": "^4.17.15"
   },
   "devDependencies": {
-    "@asyncapi/generator": "^1.9.6",
+    "@asyncapi/generator": "^1.9.18",
     "@asyncapi/parser": "^1.15.1",
     "@babel/preset-env": "^7.15.8",
     "@babel/preset-react": "^7.14.5",
